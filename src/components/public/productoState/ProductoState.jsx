@@ -149,7 +149,11 @@ const ProductoState = () => {
                   </Col>
                   <Col lg={4} className="text-center mt-3 mb-3">
                     <h4 className="fw-bold">Fecha de Entrega</h4>
-                    <h6>-- : -- : --</h6>
+                    {data.fechaEntrega ? (
+                      <h6>{formatoPeru.format(data.fechaEntrega)}</h6>
+                    ) : (
+                      <h6 className="text-white-50">NO SE ENTREGO</h6>
+                    )}
                   </Col>
                   <Col lg={4} className="text-center mt-3 mb-3">
                     <h4 className="fw-bold">Empresa</h4>
