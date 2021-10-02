@@ -16,12 +16,19 @@ const HomePage = ({ setTitle }) => {
         <Row>
           <Col xs={12}>
             <Card>
-              <Card.Header>Home</Card.Header>
               <Card.Body>
-                <Card.Title>Special title treatment</Card.Title>
+                <Card.Title className="text-center">
+                  BIENVENIDO A LA APP DEL TALLER 1.0 (Esteremos en Desarrollo)
+                  🙌🥳{" "}
+                </Card.Title>
                 <Card.Text>
-                  With supporting text below as a natural lead-in to additional
-                  content.
+                  <Container>
+                    <Row>
+                      <Col className="text-center">
+                        <h6>Cualquier cosa avisan a ESTEBAN!!</h6>
+                      </Col>
+                    </Row>
+                  </Container>
                 </Card.Text>
               </Card.Body>
             </Card>

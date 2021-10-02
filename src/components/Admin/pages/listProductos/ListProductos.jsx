@@ -13,7 +13,7 @@ import ModalProduct from "./ModalProduct"
 
 const ListProductos = ({ setTitle }) => {
   const [data, setData] = useState([])
-
+  const [index, setIndex] = useState("")
   const [show, setShow] = useState(false)
   const [dataModal, setDataModal] = useState({})
   const [spinnerModal, setSpinnerModal] = useState(false)
@@ -31,6 +31,7 @@ const ListProductos = ({ setTitle }) => {
     const docRef = doc(db, "registrosTaller", codigo)
     const docSnap = await getDoc(docRef)
     setDataModal(docSnap.data())
+    setIndex(index)
     setSpinnerModal(false)
   }
 
@@ -176,6 +177,10 @@ const ListProductos = ({ setTitle }) => {
           show={show}
           handleClose={handleClose}
           dataModal={dataModal}
+          setDataModal={setDataModal}
+          index={index}
+          datafull={data}
+          setData={setData}
         />
       )}
       <Container className="mt-5">

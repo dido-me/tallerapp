@@ -1,4 +1,11 @@
+import { useState } from "react"
 import { Modal, Container, Row, Col } from "react-bootstrap"
+import { IconButton, CircularProgress } from "@mui/material"
+// SweetAlert2
+import Swal from "sweetalert2"
+// Firebase
+import { doc, updateDoc, setDoc } from "firebase/firestore"
+import { db } from "../../../../firebase"
 import {
   FaTools,
   FaUserCircle,
@@ -9,9 +16,26 @@ import {
   FaCogs,
   FaLongArrowAltRight,
   FaHome,
+  FaPeopleCarry,
+  FaDollyFlatbed,
+  FaCalendarCheck,
+  FaSave,
 } from "react-icons/fa"
 
-const ModalProduct = ({ show, handleClose, dataModal }) => {
+const ModalProduct = ({
+  show,
+  handleClose,
+  dataModal,
+  setDataModal,
+  datafull,
+  index,
+  setData,
+}) => {
+  const [stateProd, setStateProd] = useState(dataModal.stateProducto)
+  const [stateClick, setStateClik] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [okChage, setOkChage] = useState(false)
+
   const formatoPeru = new Intl.DateTimeFormat("es-PE", {
     year: "numeric",
     month: "numeric",
@@ -20,6 +44,77 @@ const ModalProduct = ({ show, handleClose, dataModal }) => {
     minute: "numeric",
     second: "numeric",
   })
+
+  const ICON_STATE = {
+    0: <FaPeopleCarry className="fs-2   text-white" />,
+    1: <FaTools className="fs-2   text-white" />,
+    2: <FaDollyFlatbed className="fs-2   text-white" />,
+    3: <FaCalendarCheck className="fs-2   text-white" />,
+  }
+
+  const COLOR_STATE = {
+    0: "#ffbe0b",
+    1: "#fb5607",
+    2: "#8338ec",
+    3: "#3a86ff",
+  }
+
+  const NAME_STATE = {
+    0: "REGISTRADO",
+    1: "EN REVISION",
+    2: "TERMINADO",
+    3: "ENTREGADO",
+  }
+
+  const handleStateProd = () => {
+    setStateClik(true)
+    if (stateProd < 3) {
+      setStateProd(stateProd + 1)
+    } else {
+      setStateProd(0)
+    }
+  }
+
+  const handleSave = () => {
+    Swal.fire({
+      icon: "info",
+
+      showCancelButton: true,
+      confirmButtonColor: "#4e73df",
+      cancelButtonColor: "#e74a3b",
+      title: "Cambio correctamente el estado?",
+      confirmButtonText: "Si",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          setLoading(true)
+          const washingtonRef = doc(db, "registrosTaller", dataModal.uid)
+
+          await updateDoc(washingtonRef, {
+            stateProducto: stateProd,
+          })
+          const arrayUpdate = datafull.map((item, i) =>
+            i === index ? { ...item, estado: stateProd } : item
+          )
+
+          setData(arrayUpdate)
+
+          if (stateProd === 3) {
+            const cityRef = doc(db, "registrosTaller", dataModal.uid)
+            setDoc(cityRef, { fechaEntrega: Date.now() }, { merge: true })
+            setDataModal({ ...dataModal, fechaEntrega: Date.now() })
+            setOkChage(true)
+          }
+
+          setStateClik(false)
+          setLoading(false)
+        } catch (error) {
+          console.log(error)
+        }
+      }
+    })
+  }
+
   return (
     <>
       <Modal show={show} onHide={handleClose} size="lg">
@@ -36,19 +131,47 @@ const ModalProduct = ({ show, handleClose, dataModal }) => {
                       <Col
                         lg={2}
                         className="rounded-circle d-flex justify-content-center align-items-center shadow-lg"
+                        onClick={
+                          dataModal.stateProducto === 3 || okChage === true
+                            ? null
+                            : handleStateProd
+                        }
                         style={{
                           width: "80px",
                           height: "80px",
-                          background: "#ffbe0b",
+                          background: COLOR_STATE[stateProd],
+                          cursor: "pointer",
                         }}
                       >
-                        <FaTools className="fs-2   text-white" />
+                        {ICON_STATE[stateProd]}
                       </Col>
                     </Row>
 
                     <Row>
                       <Col>
-                        <h5 className="text-center">Estado: Registrado</h5>
+                        <h5 className="text-center">
+                          Estado: {NAME_STATE[stateProd]}
+                          {stateClick && (
+                            <>
+                              {loading ? (
+                                <CircularProgress
+                                  color="inherit"
+                                  size={30}
+                                  className="ms-2"
+                                />
+                              ) : (
+                                <IconButton
+                                  aria-label="delete"
+                                  size="small"
+                                  className="ms-2"
+                                  onClick={handleSave}
+                                >
+                                  <FaSave className="text-white" />
+                                </IconButton>
+                              )}
+                            </>
+                          )}
+                        </h5>
                       </Col>
                     </Row>
                   </Col>
@@ -97,7 +220,7 @@ const ModalProduct = ({ show, handleClose, dataModal }) => {
 
                     {dataModal.fechaEntrega ? (
                       <h6 className="text-center ">
-                        {formatoPeru.format(dataModal.fechaRegistro)}
+                        {formatoPeru.format(dataModal.fechaEntrega)}
                       </h6>
                     ) : (
                       <h6 className="text-center text-white-50">

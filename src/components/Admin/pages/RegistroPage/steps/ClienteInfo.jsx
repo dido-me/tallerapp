@@ -22,6 +22,7 @@ const validate = Yup.object({
 const ClienteInfo = ({ steps, activeStep, handleNext }) => {
   // eslint-disable-next-line no-unused-vars
   const [cliente, setCliente] = useLocalStorage("cliente", null)
+  const [stateManual, setStateManual] = useState(false)
   const [status, setStatus] = useState("")
   const [dni, setDni] = useState({})
   const formik = useFormik({
@@ -31,12 +32,15 @@ const ClienteInfo = ({ steps, activeStep, handleNext }) => {
     },
     validationSchema: validate,
     onSubmit: (data) => {
-      setCliente(JSON.stringify(data))
+      setCliente(
+        JSON.stringify({ ...data, fullName: data.fullName.toUpperCase() })
+      )
       handleNext()
     },
   })
 
   const handleDNI = async () => {
+    // formik.setValues("fullName", "")
     if (formik.touched.DNI === undefined || formik.errors.DNI) {
       formik.setFieldTouched("DNI", true)
       return
@@ -52,8 +56,10 @@ const ClienteInfo = ({ steps, activeStep, handleNext }) => {
       if (res.data.nombres !== "") {
         if (res.data.nombres === null) {
           setStatus(404)
+          formik.setFieldValue("fullName", "")
           formik.setFieldValue("DNI", "")
           formik.setFieldTouched("DNI", true)
+          setStateManual(true)
         } else {
           setStatus(200)
           formik.setFieldValue(
@@ -75,6 +81,9 @@ const ClienteInfo = ({ steps, activeStep, handleNext }) => {
   useEffect(() => {
     // Limpear localstorage
     localStorage.removeItem("cliente")
+    // return () => {
+
+    // }
   }, [])
 
   return (
@@ -119,10 +128,12 @@ const ClienteInfo = ({ steps, activeStep, handleNext }) => {
           </Row>
           <Row className="mt-5">
             <Col className=" text-center">
-              <FaIdCard
-                style={{ fontSize: "45px" }}
-                className="me-3 text-primary"
-              />
+              {stateManual ? null : (
+                <FaIdCard
+                  style={{ fontSize: "45px" }}
+                  className="me-3 text-primary"
+                />
+              )}
               {status === 200 ? (
                 dni.success !== undefined ? (
                   <span style={{ fontSize: "15px" }}>{dni.message}</span>
@@ -132,14 +143,45 @@ const ClienteInfo = ({ steps, activeStep, handleNext }) => {
                   </span>
                 )
               ) : (
-                <span
-                  style={{ fontSize: "15px" }}
-                  className="text-warning fw-bold"
-                >
-                  {status === 404
-                    ? "No se encontro resultados.(Error de servidor)"
-                    : "Ingrese un DNI"}
-                </span>
+                <>
+                  {status === 404 ? (
+                    <>
+                      {stateManual ? (
+                        <TextField
+                          fullWidth
+                          id="fullName"
+                          name="fullName"
+                          label="Ingrese el Nombre Manualmente .."
+                          variant="filled"
+                          value={formik.values.fullName}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          error={
+                            formik.touched.fullName &&
+                            Boolean(formik.errors.fullName)
+                          }
+                          helperText={
+                            formik.touched.fullName && formik.errors.fullName
+                          }
+                        />
+                      ) : (
+                        <span
+                          style={{ fontSize: "15px" }}
+                          className="text-warning fw-bold"
+                        >
+                          No se encontro resultados.(Error de servidor)
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span
+                      style={{ fontSize: "15px" }}
+                      className="text-warning fw-bold"
+                    >
+                      Ingrese un DNI
+                    </span>
+                  )}
+                </>
               )}
             </Col>
           </Row>
