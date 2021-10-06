@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Container, Row, Col } from "react-bootstrap"
 import { Button, Box, TextField, IconButton } from "@mui/material"
-import { AccountCircle, Fingerprint } from "@mui/icons-material"
+import { AccountCircle, Fingerprint, PhoneAndroid } from "@mui/icons-material"
 import { useFormik } from "formik"
 import { FaIdCard } from "react-icons/fa"
 import axios from "axios"
@@ -16,7 +16,10 @@ const validate = Yup.object({
     .min(8, "DNI INVALIDO")
     .max(8, "DNI INVALIDO")
     .matches(/^[0-9]*$/, "DNI INVALIDO"),
-  fullName: Yup.string().required("Ingrese DNI valido"),
+  fullName: Yup.string().required("Ingrese DNI valido."),
+  phoneNumber: Yup.string()
+    .required("Ingrese un numero de celular")
+    .matches(/^[0-9]{9}$/, "Ingrese un numero de celular valido."),
 })
 
 const ClienteInfo = ({ steps, activeStep, handleNext }) => {
@@ -29,6 +32,7 @@ const ClienteInfo = ({ steps, activeStep, handleNext }) => {
     initialValues: {
       DNI: "",
       fullName: "",
+      phoneNumber: "",
     },
     validationSchema: validate,
     onSubmit: (data) => {
@@ -92,10 +96,34 @@ const ClienteInfo = ({ steps, activeStep, handleNext }) => {
         <Container className="mt-5 ">
           <Row className="mt-5">
             <Col className=" text-center">
-              <h2>Hola 🙌 Ingresa el DNI del cliente</h2>
+              <h2>Hola 🙌 Ingresa todo la informacion del cliente</h2>
               <span className="text-warning">
                 * Despues de llenar el DNI click en la huella
               </span>
+            </Col>
+          </Row>
+          <Row className="mt-5 d-flex justify-content-center ">
+            <Col lg={4} xs={10}>
+              <Box sx={{ display: "flex", alignItems: "flex-end" }}>
+                <PhoneAndroid sx={{ color: "action.active", mr: 1, my: 0.5 }} />
+                <TextField
+                  fullWidth
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  label="Numero de Celular"
+                  variant="standard"
+                  value={formik.values.phoneNumber}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  error={
+                    formik.touched.phoneNumber &&
+                    Boolean(formik.errors.phoneNumber)
+                  }
+                  helperText={
+                    formik.touched.phoneNumber && formik.errors.phoneNumber
+                  }
+                />
+              </Box>
             </Col>
           </Row>
           <Row className="mt-5 d-flex justify-content-center ">
@@ -113,7 +141,7 @@ const ClienteInfo = ({ steps, activeStep, handleNext }) => {
                   onBlur={formik.handleBlur}
                   error={formik.touched.DNI && Boolean(formik.errors.DNI)}
                   helperText={formik.touched.DNI && formik.errors.DNI}
-                  label="DNI Cliente"
+                  label="DNI"
                   variant="standard"
                 />
                 <IconButton

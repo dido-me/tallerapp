@@ -1,9 +1,7 @@
-import { useRef } from "react"
-import { Button, IconButton } from "@mui/material"
-import PrintIcon from "@mui/icons-material/Print"
-import { Row, Col, Card, Container } from "react-bootstrap"
-import Barcode from "react-hooks-barcode"
-import { useReactToPrint } from "react-to-print"
+import { useState } from "react"
+import { Button } from "@mui/material"
+import { Row, Col, Container } from "react-bootstrap"
+import ImprimirProducto from "../modals/ImprimirProducto"
 
 const ImpimirBarcode = ({
   activeStep,
@@ -13,16 +11,18 @@ const ImpimirBarcode = ({
   productos,
   setProductos,
 }) => {
-  const config = {
-    marginTop: "20px",
-    marginBottom: "20px",
-    width: 1,
-    lineColor: "#2364aa",
+  const [modalShow, setModalShow] = useState(false)
+  const [dataModal, setDataModal] = useState({})
+
+  const handleOpen = (item) => {
+    setModalShow(true)
+    setDataModal(item)
   }
-  const componentRef = useRef()
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-  })
+
+  const handleClose = () => {
+    setModalShow(false)
+    setDataModal({})
+  }
 
   const TerminarProceso = () => {
     // Limpear localstorage
@@ -33,48 +33,45 @@ const ImpimirBarcode = ({
 
   return (
     <>
-      <Container ref={componentRef}>
-        {productos.map((item, index) => (
-          <Row key={index} className="d-flex justify-content-center">
-            <Col sm={8} className="mt-4">
-              <Card>
-                <Card.Header
-                  className="d-flex justify-content-between text-white"
-                  style={{ background: "#2364aa" }}
-                >
-                  <span>{item.tipoProducto}</span> -
-                  <span>{item.modeloProducto}</span>
-                </Card.Header>
-                <Card.Body className="d-flex justify-content-center">
-                  <Barcode value={item.uid} {...config} />
-                </Card.Body>
-                <Card.Footer>
-                  <Row>
-                    <Col sm={12}>Fecha de Registro: {item.fechaRegistro}</Col>
-                    <hr />
-                    <Col sm={12}>
-                      <span className="text-info">
-                        * Haz seguimiento en nuestra pagina con el codigo de
-                        barras o tu DNI
-                      </span>
-                    </Col>
-                  </Row>
-                </Card.Footer>
-              </Card>
+      {Object.entries(dataModal).length !== 0 && (
+        <ImprimirProducto
+          show={modalShow}
+          onHide={handleClose}
+          dataModal={dataModal}
+        />
+      )}
+      <Container>
+        <Row className="mt-5 d-flex justify-content-center">
+          {productos.map((item, index) => (
+            <Col
+              key={index}
+              lg={5}
+              className="mt-3 mb-3 d-flex justify-content-center"
+            >
+              <Button
+                variant="contained"
+                onClick={() => {
+                  handleOpen(item)
+                }}
+              >
+                {item.tipoProducto} - {item.marcaProducto} -{" "}
+                {item.modeloProducto}
+              </Button>
             </Col>
-          </Row>
-        ))}
+          ))}
+        </Row>
       </Container>
 
-      <hr />
-      <Row>
-        <Col sm={12} className="d-flex justify-content-center">
-          <IconButton aria-label="print" onClick={handlePrint} color="primary">
-            <PrintIcon fontSize="large" className="mr-2" /> Imprimir
-          </IconButton>
+      <Row className="mt-5">
+        <Col>
+          <h6 className="text-info">
+            HAGA CLICK EN EL PRODUCTO PARA IMPRIMIR!
+          </h6>
         </Col>
       </Row>
+
       <hr />
+
       <div className="row mt-4">
         <div className="col-md">
           <Button disabled={activeStep === 0} onClick={handleBack}>

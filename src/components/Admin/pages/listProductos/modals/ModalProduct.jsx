@@ -1,11 +1,15 @@
 import { useState } from "react"
+import ImprimirDatos from "./ImprimirDatos"
+import NumberPhone from "./NumberPhone"
 import { Modal, Container, Row, Col } from "react-bootstrap"
-import { IconButton, CircularProgress } from "@mui/material"
+import { IconButton, CircularProgress, Button } from "@mui/material"
+
+import LocalPrintshopIcon from "@mui/icons-material/LocalPrintshop"
 // SweetAlert2
 import Swal from "sweetalert2"
 // Firebase
 import { doc, updateDoc, setDoc } from "firebase/firestore"
-import { db } from "../../../../firebase"
+import { db } from "../../../../../firebase"
 import {
   FaTools,
   FaUserCircle,
@@ -20,7 +24,10 @@ import {
   FaDollyFlatbed,
   FaCalendarCheck,
   FaSave,
+  FaEdit,
+  FaPlusCircle,
 } from "react-icons/fa"
+import AddErrorsProd from "./AddErrorsProd"
 
 const ModalProduct = ({
   show,
@@ -31,10 +38,46 @@ const ModalProduct = ({
   index,
   setData,
 }) => {
+  const [modalShow, setModalShow] = useState(false)
+  const [dataPrint, setDataPrint] = useState({})
+  const [dataFallas, setDataFallas] = useState({})
   const [stateProd, setStateProd] = useState(dataModal.stateProducto)
   const [stateClick, setStateClik] = useState(false)
   const [loading, setLoading] = useState(false)
   const [okChage, setOkChage] = useState(false)
+
+  // Modal Cell
+  const [showCell, setShowCell] = useState(false)
+  const handleCloseCell = () => {
+    setShowCell(false)
+  }
+  const handleShowCell = () => {
+    setShowCell(true)
+  }
+  // Fin Modal Cell
+
+  // Modal Add Erros
+  const [showErrorsAdd, setShowErrorsAdd] = useState(false)
+  const handleCloseErrorsAdd = () => {
+    setShowErrorsAdd(false)
+    setDataFallas({})
+  }
+  const handleShowErrorsAdd = () => {
+    setShowErrorsAdd(true)
+    setDataFallas(dataModal)
+  }
+
+  // Fin Modal
+
+  const handlePrintOpen = () => {
+    setModalShow(true)
+    setDataPrint(dataModal)
+  }
+
+  const handlePrintClose = () => {
+    setModalShow(false)
+    setDataPrint({})
+  }
 
   const formatoPeru = new Intl.DateTimeFormat("es-PE", {
     year: "numeric",
@@ -117,6 +160,37 @@ const ModalProduct = ({
 
   return (
     <>
+      {Object.entries(dataModal).length !== 0 && (
+        <>
+          <NumberPhone
+            show={showCell}
+            handleCloseCell={handleCloseCell}
+            phoneData={dataModal}
+            setDataModal={setDataModal}
+          />
+        </>
+      )}
+
+      {Object.entries(dataFallas).length !== 0 && (
+        <>
+          <AddErrorsProd
+            show={showErrorsAdd}
+            handleClose={handleCloseErrorsAdd}
+            data={dataFallas}
+            setDataModal={setDataModal}
+          />
+        </>
+      )}
+      {Object.entries(dataPrint).length !== 0 && (
+        <>
+          <ImprimirDatos
+            show={modalShow}
+            onHide={handlePrintClose}
+            dataModal={dataPrint}
+          />
+        </>
+      )}
+
       <Modal show={show} onHide={handleClose} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>INFORMACION DEL REGISTRO</Modal.Title>
@@ -251,6 +325,25 @@ const ModalProduct = ({
                   <h6 className="text-center mt-3 mb-3">
                     DNI: <span>{dataModal.cliente.DNI}</span>
                   </h6>
+                  <h6 className="text-center mt-3 mb-3">
+                    CELULAR:{" "}
+                    <span>
+                      {dataModal.cliente.phoneNumber
+                        ? dataModal.cliente.phoneNumber
+                        : "No registrado."}
+                    </span>
+                    <span className="ms-2">
+                      <IconButton
+                        aria-label="editCell"
+                        size="small"
+                        color="info"
+                        className="ms-2"
+                        onClick={handleShowCell}
+                      >
+                        <FaEdit />
+                      </IconButton>
+                    </span>
+                  </h6>
                 </Col>
               </Row>
             </Row>
@@ -314,10 +407,17 @@ const ModalProduct = ({
                 <Col
                   lg={10}
                   xs={8}
-                  className="d-flex justify-content-center align-items-center"
+                  className="d-flex flex-column justify-content-center align-items-center"
                 >
+                  <IconButton
+                    aria-label="addErrors"
+                    size="large"
+                    onClick={handleShowErrorsAdd}
+                  >
+                    <FaPlusCircle />
+                  </IconButton>
                   {dataModal.fallas.map((item, index) => (
-                    <h6 className="text-center " key={index}>
+                    <h6 className="text-center mb-4 " key={index}>
                       <FaCircle className="me-2" /> {item}
                     </h6>
                   ))}
@@ -353,6 +453,15 @@ const ModalProduct = ({
             </Row>
           </Container>
         </Modal.Body>
+        <Modal.Footer className="d-flex justify-content-center">
+          <Button
+            variant="contained"
+            onClick={handlePrintOpen}
+            startIcon={<LocalPrintshopIcon />}
+          >
+            Imprimir Comprobante
+          </Button>
+        </Modal.Footer>
       </Modal>
     </>
   )

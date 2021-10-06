@@ -9,7 +9,7 @@ import DataTable from "react-data-table-component"
 // Firebase
 import { collection, getDocs, doc, getDoc } from "firebase/firestore"
 import { db } from "../../../../firebase"
-import ModalProduct from "./ModalProduct"
+import ModalProduct from "./modals/ModalProduct"
 
 const ListProductos = ({ setTitle }) => {
   const [data, setData] = useState([])
