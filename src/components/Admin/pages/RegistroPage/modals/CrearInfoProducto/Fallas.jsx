@@ -41,7 +41,7 @@ const FallasModal = ({ formik }) => {
     setError(null)
   }
 
-  // Eliminar Custodia
+  // Eliminar Fallas
   const eliminarfalla = (id) => {
     const arrayFiltrado = fallas.filter((_, index) => index !== id)
     formik.setFieldValue("fallas", arrayFiltrado)

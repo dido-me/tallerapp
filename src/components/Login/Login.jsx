@@ -1,6 +1,6 @@
 import "./login.css"
 import { withRouter } from "react-router-dom"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Container, Row, Col, Alert } from "react-bootstrap"
 import logo from "../../assets/img/logoGeneral.png"
 import { useDispatch, useSelector } from "react-redux"
@@ -39,9 +39,9 @@ const validate = Yup.object({
 // ==========================================
 
 const Login = ({ firebaseUser, history }) => {
-  const [loadingClick, setlLoadingClick] = useState(false)
   const loading = useSelector((store) => store.usuario.loading)
   const error = useSelector((store) => store.usuario.error)
+  const activo = useSelector((store) => store.usuario.activo)
   const [showPassword, setShowPassword] = useState(false)
   const dispatch = useDispatch()
   const formik = useFormik({
@@ -52,11 +52,6 @@ const Login = ({ firebaseUser, history }) => {
     validationSchema: validate,
     onSubmit: (data) => {
       dispatch(loginAction(data.email, data.pass))
-      setlLoadingClick(true)
-      setTimeout(() => {
-        setlLoadingClick(false)
-        history.push("/admin")
-      }, 3000)
     },
   })
 
@@ -68,9 +63,20 @@ const Login = ({ firebaseUser, history }) => {
     event.preventDefault()
   }
 
+  useEffect(() => {
+    const handleRedirect = () => {
+      if (activo) {
+        history.push("/admin")
+      } else {
+        // eslint-disable-next-line no-useless-return
+        return
+      }
+    }
+    handleRedirect()
+  }, [activo])
   return firebaseUser !== false ? (
     <>
-      {loadingClick ? (
+      {loading === true ? (
         <Loading />
       ) : (
         <div

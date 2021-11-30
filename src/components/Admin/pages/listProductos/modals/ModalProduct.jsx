@@ -1,14 +1,14 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import ImprimirDatos from "./ImprimirDatos"
 import NumberPhone from "./NumberPhone"
-import { Modal, Container, Row, Col } from "react-bootstrap"
+import { Modal, Container, Row, Col, Image } from "react-bootstrap"
 import { IconButton, CircularProgress, Button } from "@mui/material"
 
 import LocalPrintshopIcon from "@mui/icons-material/LocalPrintshop"
 // SweetAlert2
 import Swal from "sweetalert2"
 // Firebase
-import { doc, updateDoc, setDoc } from "firebase/firestore"
+import { doc, updateDoc, setDoc, getDoc } from "firebase/firestore"
 import { db } from "../../../../../firebase"
 import {
   FaTools,
@@ -28,6 +28,7 @@ import {
   FaPlusCircle,
 } from "react-icons/fa"
 import AddErrorsProd from "./AddErrorsProd"
+import AddServiceProd from "./AddServiceProd"
 
 const ModalProduct = ({
   show,
@@ -41,10 +42,12 @@ const ModalProduct = ({
   const [modalShow, setModalShow] = useState(false)
   const [dataPrint, setDataPrint] = useState({})
   const [dataFallas, setDataFallas] = useState({})
+  const [dataService, setDataService] = useState({})
   const [stateProd, setStateProd] = useState(dataModal.stateProducto)
   const [stateClick, setStateClik] = useState(false)
   const [loading, setLoading] = useState(false)
   const [okChage, setOkChage] = useState(false)
+  const [photoUser, setPhotoUser] = useState("")
 
   // Modal Cell
   const [showCell, setShowCell] = useState(false)
@@ -67,6 +70,19 @@ const ModalProduct = ({
     setDataFallas(dataModal)
   }
 
+  // Fin Modal
+
+  // Modal Service
+
+  const [showService, setShowService] = useState(false)
+  const handleCloseService = () => {
+    setShowService(false)
+    setDataService({})
+  }
+  const handleShowService = () => {
+    setShowService(true)
+    setDataService(dataModal)
+  }
   // Fin Modal
 
   const handlePrintOpen = () => {
@@ -143,8 +159,8 @@ const ModalProduct = ({
           setData(arrayUpdate)
 
           if (stateProd === 3) {
-            const cityRef = doc(db, "registrosTaller", dataModal.uid)
-            setDoc(cityRef, { fechaEntrega: Date.now() }, { merge: true })
+            const FechaRef = doc(db, "registrosTaller", dataModal.uid)
+            setDoc(FechaRef, { fechaEntrega: Date.now() }, { merge: true })
             setDataModal({ ...dataModal, fechaEntrega: Date.now() })
             setOkChage(true)
           }
@@ -157,6 +173,16 @@ const ModalProduct = ({
       }
     })
   }
+
+  useEffect(() => {
+    const getPhotoUser = async () => {
+      const docRef = doc(db, "usuarios", dataModal.personal.uid)
+      const docSnap = await getDoc(docRef)
+      setPhotoUser(docSnap.data().photoUrl)
+    }
+
+    getPhotoUser()
+  }, [])
 
   return (
     <>
@@ -171,6 +197,16 @@ const ModalProduct = ({
         </>
       )}
 
+      {Object.entries(dataPrint).length !== 0 && (
+        <>
+          <ImprimirDatos
+            show={modalShow}
+            onHide={handlePrintClose}
+            dataModal={dataPrint}
+          />
+        </>
+      )}
+
       {Object.entries(dataFallas).length !== 0 && (
         <>
           <AddErrorsProd
@@ -181,12 +217,14 @@ const ModalProduct = ({
           />
         </>
       )}
-      {Object.entries(dataPrint).length !== 0 && (
+
+      {Object.entries(dataService).length !== 0 && (
         <>
-          <ImprimirDatos
-            show={modalShow}
-            onHide={handlePrintClose}
-            dataModal={dataPrint}
+          <AddServiceProd
+            show={showService}
+            handleClose={handleCloseService}
+            data={dataService}
+            setDataModal={setDataModal}
           />
         </>
       )}
@@ -339,6 +377,7 @@ const ModalProduct = ({
                         color="info"
                         className="ms-2"
                         onClick={handleShowCell}
+                        style={stateProd === 3 ? { display: "none" } : {}}
                       >
                         <FaEdit />
                       </IconButton>
@@ -384,7 +423,7 @@ const ModalProduct = ({
                 >
                   <FaHome className="fs-1 m-3 " />
                 </Col>
-                <Col lg={10} xs={8}>
+                <Col lg={8} xs={8}>
                   <h6 className="text-center mt-4 mb-3">
                     <span>
                       {dataModal.personal.empresa === "EF"
@@ -392,6 +431,39 @@ const ModalProduct = ({
                         : "SAYOR - Jr. Libertad 511"}
                     </span>
                   </h6>
+                  <h6 className="text-center mt-4 mb-3">
+                    Personal:{" "}
+                    <span>
+                      {dataModal.personal.nombres.toUpperCase()}{" "}
+                      {dataModal.personal.apellidos.toUpperCase()}
+                    </span>
+                  </h6>
+                </Col>
+                <Col
+                  lg={2}
+                  xs={12}
+                  className="border-start border-3 d-flex justify-content-center align-items-center "
+                >
+                  <div
+                    className="ms-2"
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      backgroundColor: "#0077b6",
+                      overflow: "hidden",
+                      borderRadius: "35px",
+                    }}
+                  >
+                    <Image
+                      src={photoUser}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                      }}
+                    />
+                  </div>
                 </Col>
               </Row>
             </Row>
@@ -413,9 +485,11 @@ const ModalProduct = ({
                     aria-label="addErrors"
                     size="large"
                     onClick={handleShowErrorsAdd}
+                    style={stateProd === 3 ? { display: "none" } : {}}
                   >
                     <FaPlusCircle />
                   </IconButton>
+
                   {dataModal.fallas.map((item, index) => (
                     <h6 className="text-center mb-4 " key={index}>
                       <FaCircle className="me-2" /> {item}
@@ -436,8 +510,16 @@ const ModalProduct = ({
                 <Col
                   lg={10}
                   xs={8}
-                  className="d-flex justify-content-center align-items-center"
+                  className="d-flex flex-column justify-content-center align-items-center"
                 >
+                  <IconButton
+                    aria-label="addErrors"
+                    size="large"
+                    onClick={handleShowService}
+                    style={stateProd === 3 ? { display: "none" } : {}}
+                  >
+                    <FaPlusCircle />
+                  </IconButton>
                   {dataModal.servicios.list.map((item, index) => (
                     <h6 className="text-center mt-3 mb-3 " key={index}>
                       <FaCircle className="me-2" /> {item.name}{" "}

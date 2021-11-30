@@ -1,6 +1,7 @@
-import { auth, db } from "../firebase"
+import { auth, db, storage } from "../firebase"
 import { signInWithEmailAndPassword, signOut } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
+import { doc, getDoc, updateDoc } from "firebase/firestore"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 
 // data
 const dataStart = {
@@ -54,6 +55,7 @@ export const loginAction = (email, pass) => async (dispatch) => {
         apellidos: dataUser.data().apellidos,
         nombres: dataUser.data().nombres,
         empresa: dataUser.data().empresa,
+        photoUrl: dataUser.data().photoUrl,
       },
     })
 
@@ -65,6 +67,7 @@ export const loginAction = (email, pass) => async (dispatch) => {
         apellidos: dataUser.data().apellidos,
         nombres: dataUser.data().nombres,
         empresa: dataUser.data().empresa,
+        photoUrl: dataUser.data().photoUrl,
       })
     )
   } catch (error) {
@@ -102,3 +105,38 @@ export const signoutAction = () => (dispatch) => {
 
   localStorage.removeItem("usuario")
 }
+
+export const editarFotoAction =
+  (imagenEditada) => async (dispatch, getState) => {
+    dispatch({
+      type: LOADING,
+    })
+
+    const { user } = getState().usuario
+
+    try {
+      const imagenRef = ref(storage, `${user.email}/foto_perfil`)
+      await uploadBytes(imagenRef, imagenEditada)
+      const imagenUrl = await getDownloadURL(imagenRef)
+      const useRef = doc(db, "usuarios", user.uid)
+      await updateDoc(useRef, {
+        photoUrl: imagenUrl,
+      })
+
+      const usuario = {
+        ...user,
+        photoUrl: imagenUrl,
+      }
+
+      dispatch({
+        type: USER_OK,
+        payload: {
+          ...usuario,
+        },
+      })
+
+      localStorage.setItem("usuario", JSON.stringify(usuario))
+    } catch (error) {
+      console.log(error)
+    }
+  }

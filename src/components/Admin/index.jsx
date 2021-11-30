@@ -9,16 +9,19 @@ import { onAuthStateChanged } from "firebase/auth"
 
 import Scroll from "./scroll/Scroll"
 import HomePage from "./pages/HomePage"
+import Profile from "./pages/Profile"
 import RegistroPage from "./pages/RegistroPage/RegistroPage"
 import Loading from "../Loading/Loading"
 import { PrivateRouteAdmin } from "../../PrivateRoutes/PrivateRouteAdmin"
 import { Switch, Route, Redirect } from "react-router-dom"
 import ListProductos from "./pages/listProductos/ListProductos"
+import { useSelector } from "react-redux"
 
 const index = () => {
   const [title, setTitle] = useState("")
 
   const [firebaseUser, setFirebaseUser] = useState(false)
+  const usuario = useSelector((store) => store.usuario.user)
 
   useEffect(() => {
     const fetchUser = () => {
@@ -42,7 +45,7 @@ const index = () => {
       <div className="d-flex" id="wrapper">
         <Sidebar />
         <div id="page-content-wrapper">
-          <Navbar title={title} />
+          <Navbar title={title} usuario={usuario} />
 
           <div className="container-fluid px-4">
             <Switch>
@@ -52,6 +55,13 @@ const index = () => {
                 firebaseUser={firebaseUser}
               >
                 <HomePage setTitle={setTitle} />
+              </PrivateRouteAdmin>
+              <PrivateRouteAdmin
+                exact
+                path="/admin/profile"
+                firebaseUser={firebaseUser}
+              >
+                <Profile setTitle={setTitle} usuario={usuario} />
               </PrivateRouteAdmin>
               <PrivateRouteAdmin
                 exact

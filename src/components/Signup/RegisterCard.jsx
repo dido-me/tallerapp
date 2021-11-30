@@ -75,6 +75,7 @@ const RegisterCard = (props) => {
           pass: data.pass2,
           fechaCreate: Date.now(),
           empresa: data.empresa,
+          photoUrl: process.env.FOTO_URL,
         }
         const dataRef = doc(db, "usuarios", res.user.uid)
         await setDoc(dataRef, dataClean)

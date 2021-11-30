@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { FaBars, FaSignOutAlt, FaUserAstronaut } from "react-icons/fa"
 import { Button, Menu, MenuItem } from "@mui/material"
 import { Col } from "react-bootstrap"
 import ModalSignOut from "./ModalSignOut"
+import { Link, withRouter } from "react-router-dom"
 import { useDispatch } from "react-redux"
 
 // ========================================
 import { signoutAction } from "../../../redux/usuarioDucks"
 
-const Navbar = ({ title }) => {
+const Navbar = ({ title, history, usuario }) => {
   const dispatch = useDispatch()
 
   const [show, setShow] = useState(false)
-  const [user, setUser] = useState({})
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
   const handleClick = (event) => {
@@ -31,12 +31,8 @@ const Navbar = ({ title }) => {
   const handleSignout = () => {
     dispatch(signoutAction())
     setShow(false)
+    history.push("/login")
   }
-
-  useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("usuario"))
-    setUser(data)
-  }, [])
 
   return (
     <nav
@@ -61,14 +57,29 @@ const Navbar = ({ title }) => {
           onClick={handleClick}
         >
           <span id="nameAvatar">
-            {user.nombres} {user.apellidos}
+            {usuario.nombres} {usuario.apellidos}
           </span>
-          <img
-            src="https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=200"
-            className="ms-2 rounded-circle"
-            alt="avatar"
-            width="50"
-          />
+          <div
+            className="ms-2"
+            style={{
+              width: "50px",
+              height: "50px",
+              backgroundColor: "#0077b6",
+              overflow: "hidden",
+              borderRadius: "35px",
+            }}
+          >
+            <img
+              src={usuario.photoUrl}
+              alt="avatar"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center",
+              }}
+            />
+          </div>
         </Button>
         <Menu
           id="basic-menu"
@@ -79,10 +90,12 @@ const Navbar = ({ title }) => {
             "aria-labelledby": "basic-button",
           }}
         >
-          <MenuItem onClick={handleClose}>
-            <FaUserAstronaut className="me-2" />
-            Perfil
-          </MenuItem>
+          <Link to="/admin/profile" className="text-decoration-none text-black">
+            <MenuItem onClick={handleClose}>
+              <FaUserAstronaut className="me-2" />
+              Perfil
+            </MenuItem>
+          </Link>
           <MenuItem onClick={handleShow}>
             <FaSignOutAlt className="me-2" />
             Cerrar Sesion
@@ -98,4 +111,4 @@ const Navbar = ({ title }) => {
   )
 }
 
-export default Navbar
+export default withRouter(Navbar)
